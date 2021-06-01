@@ -197,7 +197,7 @@ public class DatabaseManager : MonoBehaviour
     //Insert ou met un jour une recette
     public void InsertRecette(Recette recette)
     {
-        var query = recette.Id != 0 ? "REPLACE INTO Ingredient VALUES(" + recette.Id + "," : " INSERT INTO Ingredient VALUES(";
+        var query = recette.Id != 0 ? "REPLACE INTO Recette VALUES(" + recette.Id + "," : " INSERT INTO Ingredient VALUES(";
 
         var id_3 = recette.Ingredient_Id_3 != 0 ? recette.Ingredient_Id_3.ToString() : "NULL";
         var id_4 = recette.Ingredient_Id_4 != 0 ? recette.Ingredient_Id_4.ToString() : "NULL";
