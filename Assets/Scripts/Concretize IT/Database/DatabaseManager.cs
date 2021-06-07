@@ -20,6 +20,7 @@ public class DatabaseManager : MonoBehaviour
 
         public Ingredient(string ressource, string name)
         {
+            Id = DatabaseManager.Instance.GetAllIngredients().Count + 1;
             Ressource = ressource;
             Name = name;
         }
@@ -41,6 +42,7 @@ public class DatabaseManager : MonoBehaviour
 
         public Score(int val, string name)
         {
+            Id = DatabaseManager.Instance.GetAllScores().Count + 1;
             Value = val;
             Name = name;
         }
@@ -90,6 +92,7 @@ public class DatabaseManager : MonoBehaviour
     //Initialisation du singleton et de la BDD
     private void Awake()
     {
+        //Singleton
         if (Instance == null)
         {
             Instance = this;
@@ -99,18 +102,24 @@ public class DatabaseManager : MonoBehaviour
             Destroy(this);
         }
 
+        //Connexion à la BDD
         string connectionString = "URI=file:" + Application.dataPath + "/Plugins/TestCookingBDD.db";
         dbConnection = new SqliteConnection(connectionString);
         dbConnection.Open();
 
+        //Si l'option est choisie dans la scène, on supprime les données
+        if (ResetDatabaseOnLaunch) ResetDatabase();
+
+        //On initialise la BDD
         InitDb();
 
-        if (ResetDatabaseOnLaunch) ResetDatabase();
+        
     }
 
     //Création BDD si elle n'existe pas
     private void InitDb()
     {
+        //Lors d'un export, un BDD SQL lite est vide, il faut s'assurer qu'elle soit remplie lors d'un build
         var queryIngredient = "CREATE TABLE IF NOT EXISTS 'Ingredient' (" +
                                 "'Id'    INTEGER," +
                                 "'Name'  TEXT," +
@@ -158,16 +167,16 @@ public class DatabaseManager : MonoBehaviour
         InsertScore(new Score(5, 130, "Tonton"));
 
         //Création des premiers Ingredients
-        InsertIngredient(new Ingredient(1,"","Tomate"));
-        InsertIngredient(new Ingredient(2, "", "Poivron"));
-        InsertIngredient(new Ingredient(3, "", "Dinde"));
-        InsertIngredient(new Ingredient(4, "", "Poireau"));
-        InsertIngredient(new Ingredient(5, "", "Pomme"));
+        InsertIngredient(new Ingredient(1, "Tomate", "Tomate"));
+        InsertIngredient(new Ingredient(2, "Poivron", "Poivron"));
+        InsertIngredient(new Ingredient(3, "Dinde", "Dinde"));
+        InsertIngredient(new Ingredient(4, "Carotte", "Carotte"));
+        InsertIngredient(new Ingredient(5, "Pomme", "Pomme"));
 
         //Création des premières recette
         InsertRecette(new Recette(1, "Compote",5,5,5));
         InsertRecette(new Recette(2, "Soupe",1,2,4));
-        InsertRecette(new Recette(3, "Dinde provençale",1,2,3));
+        InsertRecette(new Recette(3, "Dinde provençale",1,2,3,4));
         InsertRecette(new Recette(4, "Dinde aux pommes",3,5));
         InsertRecette(new Recette(5, "Purée de tomate",1,1,1,1));
     }
@@ -211,11 +220,6 @@ public class DatabaseManager : MonoBehaviour
         IDbCommand cmnd = dbConnection.CreateCommand();
         cmnd.CommandText = query;
         cmnd.ExecuteScalar();
-    }
-
-    private void Start()
-    {
-
     }
 
     //Récupère les 5 meilleurs scores
@@ -277,6 +281,27 @@ public class DatabaseManager : MonoBehaviour
             string ressource = reader.GetString(2);
 
             ingredients.Add(new Ingredient(id, name, ressource));
+        }
+
+        return ingredients;
+    }
+
+    //Récupère la liste des scores
+    public List<Score> GetAllScores()
+    {
+        var query = "SELECT * FROM Score";
+        IDbCommand cmnd = dbConnection.CreateCommand();
+        cmnd.CommandText = query;
+        var reader = cmnd.ExecuteReader();
+
+        var ingredients = new List<Score>();
+        while (reader.Read())
+        {
+            int id = reader.GetInt32(0);
+            int value = reader.GetInt32(1);
+            string name = reader.GetString(2);
+
+            ingredients.Add(new Score(id, value, name));
         }
 
         return ingredients;

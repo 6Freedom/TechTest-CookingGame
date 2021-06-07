@@ -10,7 +10,8 @@ public class AppManager : MonoBehaviour
     public static AppManager Instance;
     Text MenuContent;
     Text ScoreContent;
-    Text Timer;
+    public Text Timer;
+    public MovingPot Pot;
 
     //Paramètres de jeu
     public float BaseDuration;//A définir en secondes
@@ -20,7 +21,7 @@ public class AppManager : MonoBehaviour
     public int scoreMalus = -10;
     public int scoreBonus = 10;
     public int ingredientTime = 10;//temps en secondes alloué à la recette par ingredient
-    bool isPlaying = false;
+    public bool isPlaying = false;
 
     //Valeurs en base de données
     public List<DatabaseManager.Recette> receipes;
@@ -28,6 +29,8 @@ public class AppManager : MonoBehaviour
 
     public int actualReceipe;
     public List<int> IngredientsId;
+
+    public PlayButton Play;
 
     //Before start
     void Awake()
@@ -49,6 +52,7 @@ public class AppManager : MonoBehaviour
         MenuContent = GameObject.FindGameObjectWithTag("MenuBoard").GetComponent<Text>();
         ScoreContent = GameObject.FindGameObjectWithTag("ScoreBoard").GetComponent<Text>();
         Timer = GameObject.FindGameObjectWithTag("Timer").GetComponent<Text>();
+        Play = GameObject.FindGameObjectWithTag("Play").GetComponent<PlayButton>();
 
         //initialisation des données de jeu
         score = 0;
@@ -77,21 +81,21 @@ public class AppManager : MonoBehaviour
             }
             UpdateTimer();
         }
-        
-
     }
-
+    //Mise à jour du timer dans la scène
     void UpdateTimer()
     {
         if(Timer != null)
         {
             TimeSpan t = TimeSpan.FromSeconds(Duration);
-            var timerContent = t.Minutes + " : " + t.Seconds + "\n";
+            var timerContent = t.Minutes.ToString().PadLeft(2, '0') + " : " + t.Seconds.ToString().PadLeft(2, '0') + "\n";
             timerContent += "Score : " + score;
+            Timer.text = timerContent;
         }
         
     }
 
+    //Mise à jour du tableau des scores dans la scène
     public void UpdateScoringBoard()
     {
         if(ScoreContent != null)
@@ -109,6 +113,7 @@ public class AppManager : MonoBehaviour
         }
     }
 
+    //Récupère la recette suivante aléatoire et met à jour le menu
     public void GetRandomReceipe()
     {
         if(MenuContent != null)
@@ -132,6 +137,7 @@ public class AppManager : MonoBehaviour
             var ingredient3 = ingredients.Where(i => i.Id == receipes[actualReceipe].Ingredient_Id_3).FirstOrDefault();
             var ingredient4 = ingredients.Where(i => i.Id == receipes[actualReceipe].Ingredient_Id_4).FirstOrDefault();
 
+
             //Génération de la recette
             var receipeInstruction = receipes[actualReceipe].Name + "\n";
             receipeInstruction += ingredient1 != null ? ingredient1.Name + "\n" : "";
@@ -144,22 +150,26 @@ public class AppManager : MonoBehaviour
     }
 
     //Appelé lorsqu'un ingrédient rejoint la marmite
-    public void AddIngredient(int foodId)
+    public bool AddIngredient(int foodId)
     {
         if (IngredientsId.Contains(foodId))
         {
             score += scoreBonus;
             IngredientsId.RemoveAt(IngredientsId.IndexOf(foodId));
+
             if (IngredientsId.Count == 0) ValidateReceipe();
             SoundManager.Instance.PlayBonus();
+            return true;
         }
         else
         {
             score += scoreMalus;
             SoundManager.Instance.PlayMalus();
+            return false;
         }
     }
 
+    //Valide une recette finie et passe à la recette suivante
     public void ValidateReceipe()
     {
         if(IngredientsId.Count == 0)
@@ -169,8 +179,29 @@ public class AppManager : MonoBehaviour
         GetRandomReceipe();
     }
 
+    //Lance une partie
+    public void StartGame()
+    {
+        Duration = BaseDuration;
+        GetRandomReceipe();
+        isPlaying = true;
+        score = 0;
+    }
+
+    //Arrêt de la partie
     public void FinishGame()
     {
+        isPlaying = false;
+
+        //Sauvegarde et mise à jour des scores
+        DatabaseManager.Instance.InsertScore(new DatabaseManager.Score(score, Keyboard.Instance.PlayerName.text));
+        UpdateScoringBoard();
+
+        //Réinitialisation de la scène
+        MenuContent.text = "";
+        Play.Anim.SetBool("Active", false);
+        Play.Bouton.GetComponent<Renderer>().material = Play.UnactiveMaterial;
+        Pot.ResetPosition();
 
     }
 }

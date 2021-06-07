@@ -9,6 +9,7 @@ TagManager:
   - MenuBoard
   - Pot
   - Timer
+  - Play
   layers:
   - Default
   - TransparentFX

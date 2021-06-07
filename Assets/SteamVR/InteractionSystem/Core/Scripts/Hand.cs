@@ -131,8 +131,6 @@ namespace Valve.VR.InteractionSystem
         private const int ColliderArraySize = 32;
         private Collider[] overlappingColliders;
 
-        private Player playerInstance;
-
         private GameObject applicationLostFocusObject;
 
         private SteamVR_Events.Action inputFocusAction;
@@ -152,7 +150,7 @@ namespace Valve.VR.InteractionSystem
         {
             get
             {
-                return trackedObject.isValid;
+                return true;
             }
         }
 
@@ -811,12 +809,6 @@ namespace Valve.VR.InteractionSystem
         //-------------------------------------------------
         protected virtual IEnumerator Start()
         {
-            // save off player instance
-            playerInstance = Player.instance;
-            if (!playerInstance)
-            {
-                Debug.LogError("<b>[SteamVR Interaction]</b> No player instance found in Hand Start()", this);
-            }
 
             if (this.gameObject.layer == 0)
                 Debug.LogWarning("<b>[SteamVR Interaction]</b> Hand is on default layer. This puts unnecessary strain on hover checks as it is always true for hand colliders (which are then ignored).", this);

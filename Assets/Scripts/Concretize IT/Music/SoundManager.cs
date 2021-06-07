@@ -21,6 +21,7 @@ public class SoundManager : MonoBehaviour
 
     private void Awake()
     {
+        //Singleton
         if(Instance == null)
         {
             Instance = this;
@@ -43,14 +44,20 @@ public class SoundManager : MonoBehaviour
     {
         
     }
-
+    
+    //Joue le son de validation
     public void PlayBonus()
     {
         effectSource.PlayOneShot(bonusSound);
     }
 
+    //Joue le son d'erreur
     public void PlayMalus()
     {
         effectSource.PlayOneShot(malusSound);
     }
+
+    /*Ce script devait abriter une fonctionnalité jouant sur la bande son, 
+     pour rendre le jeu plus stressant et entraînant. A la vue du manque de temps,
+    cette fonctionnalité a été abandonné.*/
 }

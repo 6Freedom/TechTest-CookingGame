@@ -1,0 +1,7 @@
+{
+  "name": "SteamVR_vrtest",
+  "version": 1,
+  "overwriteOld": true,
+  "removeUnused": true,
+  "imported": false
+}
